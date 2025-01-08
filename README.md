@@ -6,7 +6,6 @@ Leveraging statistical time-series analysis to identify anomalies in ICU patient
 - [Dataset](#dataset)
 - [Methodology](#methodology)
 - [Key Findings](#key-findings)
-- [How to Run the Project](#how-to-run-the-project)
 - [Future Work](#future-work)
 - [Acknowledgements](#acknowledgements)
 ---
@@ -46,5 +45,6 @@ Early detection of anomalies in ICU vital signs can significantly improve patien
 - Systolic blood pressure (SysBP) data was stationary with no significant autocorrelation.
 - Statistical thresholds effectively identified anomalies.
 - STL decomposition highlighted potential patterns but revealed no significant seasonality.
+---
 
   
