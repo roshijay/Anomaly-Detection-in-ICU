@@ -23,9 +23,7 @@ Early detection of anomalies in ICU vital signs can significantly improve patien
 - **Data Description:**
   - Raw data includes timestamps, vital sign measurements, and patient identifiers.
   - Processed data involves cleaning, normalization, and feature extraction.
-
 ---
-
 ## Methodology
 1. **Data Preprocessing:**
    - Handling missing values using interpolation.
@@ -38,9 +36,7 @@ Early detection of anomalies in ICU vital signs can significantly improve patien
    - Identifying anomalies based on confidence intervals.
 4. **Visualization:**
    - Time-series plots with anomaly markers.
-
 ---
-
 ## Key Findings
 - Systolic blood pressure (SysBP) data was stationary with no significant autocorrelation.
 - Statistical thresholds effectively identified anomalies.
