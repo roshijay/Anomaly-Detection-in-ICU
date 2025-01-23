@@ -1,6 +1,5 @@
 # # Introduction
 # 
-# 
 # **Problem Statement**
 # In Intensive Care Units (ICUs), patients are highly susceptible to sudden health deterioration, necessitating continuous monitoring of vital signs. Metrics such as systolic blood pressure (SysBP), pulse rate, and oxygen saturation serve as critical indicators of patient stability. Deviations in these vital signs can act as precursors to severe health complications, including cardiac arrest, respiratory failure, septic shock, or adverse effects stemming from infections like Methicillin-Resistant Staphylococcus Aureus (MRSA).These anomalies not only precede life-threatening complications but also pose operational challenges for clinicians, who must prioritize care for multiple patients in a resource-constrained environment. Early detection systems can alleviate decision fatigue and support proactive care.
 # 
