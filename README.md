@@ -1,4 +1,4 @@
-##Anomaly Detection in Critical Care
+## Anomaly Detection in Critical Care
 
 **Project Type**: Time-Series Anomaly Detection for ICU Monitoring
 
