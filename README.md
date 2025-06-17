@@ -14,7 +14,7 @@ Created across two graduate-level courses at Harvard University, these projects 
 
 ##  Project Modules
 
-### 1. [`legacy_stats_model/`]
+### 1. [`legacy_stats_model/`](./legacy_stats_model/)
 **Title**: _Interpretable Time-Series Modeling with ARIMA & ETS_
 
 - Detects anomalies in systolic blood pressure (SysBP) and pulse
@@ -24,7 +24,7 @@ Created across two graduate-level courses at Harvard University, these projects 
 
 ---
 
-### 2. [`kafka_streaming_model/`]
+### 2. [`kafka_streaming_model/`](./kafka_streaming_model/)
 **Title**: _Real-Time ICU Anomaly Detection with Kafka + Unsupervised ML_
 
 - Simulates live data streams using Kafka
