@@ -66,21 +66,28 @@ pip install -r requirements.txt
 ---
 # How to Run 
 - 1. Run the legacy Staistical Model( ARIMA/ETS)
+     ```bash
      cd legacy_stats_model
      jupyter notebook legacy_model.ipynb  # or run legacy_model.py
+     ```
 
 - 2. Run the Kafka streaming Model(Real-Time)
      Terminal 1: Start Kafka producer (simulate patient data)
+     ```bash 
      cd kafka_streaming_model/producer
      python stream_producer.py
+     ```
 
      Terminal 2: Start Kafka consumer + anomaly detection
+     ```bash 
      cd kafka_streaming_model/consumer
      python detect_anomalies.py
+     ```
 
 ---
 # Requirements 
 - This project uses the following Python Libraries:
+
   *Core* 
   - pandas
   - numpy
