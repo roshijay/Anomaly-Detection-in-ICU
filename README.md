@@ -70,37 +70,37 @@ pip install -r requirements.txt
      jupyter notebook legacy_model.ipynb  # or run legacy_model.py
 
 - 2. Run the Kafka streaming Model(Real-Time)
-     # Terminal 1: Start Kafka producer (simulate patient data)
+     Terminal 1: Start Kafka producer (simulate patient data)
      cd kafka_streaming_model/producer
      python stream_producer.py
 
-     # Terminal 2: Start Kafka consumer + anomaly detection
+     Terminal 2: Start Kafka consumer + anomaly detection
      cd kafka_streaming_model/consumer
      python detect_anomalies.py
 
 ---
 # Requirements 
 - This project uses the following Python Libraries:
-  # Core
-  pandas
-  numpy
-  scikit-learn
-  matplotlib
-  seaborn
+  *Core* 
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+  - seaborn
 
-  # Time-Series & Stats
-  statsmodels
+  *Time-Series & Stats*
+  - statsmodels
 
-  # Kafka & Streaming
-  kafka-python
+  *Kafka & Streaming*
+  - kafka-python
 
-  # Explainability
-  shap
+  *Explainability*
+  - Shap
 
 ---
 
 # Project Structure 
-Anomaly-Detection-in-ICU/
+```Anomaly-Detection-in-ICU/
 │
 ├── legacy_stats_model/         # ARIMA/ETS time-series model
 │   ├── legacy_model.ipynb
@@ -113,6 +113,7 @@ Anomaly-Detection-in-ICU/
 │
 ├── requirements.txt
 └── README.md (this file)
+```
 ---
 
 
