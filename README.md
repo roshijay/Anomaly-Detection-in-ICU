@@ -56,6 +56,64 @@ These models could be deployed as clinical decision support tools to:
 - Serve as educational tools for explainable healthcare AI
 
 ---
+## Installation 
+Clone the repo and install dependencies 
+```bash
+git clone https://github.com/roshijay/Anomaly-Detection-in-ICU.git
+cd Anomaly-Detection-in-ICU
+pip install -r requirements.txt
+```
+---
+# How to Run 
+- 1. Run the legacy Staistical Model( ARIMA/ETS)
+     cd legacy_stats_model
+     jupyter notebook legacy_model.ipynb  # or run legacy_model.py
+
+- 2. Run the Kafka streaming Model(Real-Time)
+     # Terminal 1: Start Kafka producer (simulate patient data)
+     cd kafka_streaming_model/producer
+     python stream_producer.py
+
+     # Terminal 2: Start Kafka consumer + anomaly detection
+     cd kafka_streaming_model/consumer
+     python detect_anomalies.py
+
+---
+# Requirements 
+- This project uses the following Python Libraries:
+  # Core
+  pandas
+  numpy
+  scikit-learn
+  matplotlib
+  seaborn
+
+  # Time-Series & Stats
+  statsmodels
+
+  # Kafka & Streaming
+  kafka-python
+
+  # Explainability
+  shap
+
+---
+
+# Project Structure 
+Anomaly-Detection-in-ICU/
+│
+├── legacy_stats_model/         # ARIMA/ETS time-series model
+│   ├── legacy_model.ipynb
+│   └── README.md
+│
+├── kafka_streaming_model/      # Kafka stream + ML model
+│   ├── producer/
+│   ├── consumer/
+│   └── README.md
+│
+├── requirements.txt
+└── README.md (this file)
+---
 
 
 
