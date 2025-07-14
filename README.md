@@ -35,7 +35,10 @@ Originally created across two graduate-level courses at Harvard University, this
 - Recieves anomaly alerts from Kafka
 - Ranks alerts based on severity(SysBP, Pulse, Emergency)
 - Incorporates simulated clinician feedback to adapt alert importance over time
-- Near real-time performance(~1 second latency per record) 
+- Near real-time performance(~1 second latency per record)
+
+![Real-Time Kafka Alerts](./realtime_alert_system/kafka_alerts.png)
+<sub>Example: Kafka consumer detecting real-time ICU anomalies and prioritizing alerts.</sub>
 
 ---
 
