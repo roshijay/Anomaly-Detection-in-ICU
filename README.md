@@ -38,7 +38,7 @@ Originally created across two graduate-level courses at Harvard University, this
 - Near real-time performance(~1 second latency per record)
 
 ![Real-Time Kafka Alerts](./realtime_alert_system/kafka_alerts.png)
-<sub>Example: Kafka consumer detecting real-time ICU anomalies and prioritizing alerts.</sub>
+<sub> Example: Kafka consumer detecting real-time ICU anomalies and prioritizing alerts.</sub>
 
 ---
 
