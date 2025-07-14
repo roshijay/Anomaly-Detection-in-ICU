@@ -5,48 +5,47 @@
 
 ## Overview
 
-This repository contains three end-to-end systems for detecting anomalies in ICU vital signs:
+This repository contains three moddular systems for detecting anomalies in ICU vital signs:
 
 - A classic time-series model (ARIMA/ETS)
 
-- A real-time streaming anomaly detector with Kafka + ML
+- A real-time streaming anomaly detector with Kafka + unsupervised ML
 
-- A dynamic alert prioritizer that adapts based on clinician feedback (simulated)
+- A dynamic alert prioritization engine that adapts based on clinician feedback (simulated)
 
-Originally created across two graduate-level courses at Harvard University, this project builds from traditional time-series models to real-time streaming systems that incorporate feedback-driven alert priorization. 
+Originally developed across two graduate-level Harvard courses, the project progresses from interpretable statistical models to fully-streamed real-time pipelines with feedback-driven alert management.
 
 ---
 
 ##  Project Modules
 
 ### 1. [`legacy_stats_model/`](./legacy_stats_model/)
-- Uses ARIMA & Exponential Smoothing for anomaly detection in SysBP & Pulse
-- Defines confidence-based thresholds
-- Emphasizes explainability for clinicians
+- Applies ARIMA & Exponential Smoothing for anomaly detection in SysBP & Pulse
+- Defines confidence-based thresholds to flag anomalies 
+- Emphasizes interpretability to support clinicians
 ---
 
 ### 2. [`kafka_streaming_model/`](./kafka_streaming_model/)
 
-- Streams patient vitals using a Kafka producer-consumer pipeline 
+- Streams patient vital signs using a Kafka producer-consumer pipeline 
 - Detects anomalies using Isolation Forest and One-Class SVM
 - Includes SHAP for explainability and clustering for patient similarity insights
 
 ### 3. [`realtime_alert_system/`](./realtime_alert_system/)
-- Recieves anomaly alerts from Kafka
-- Ranks alerts based on severity(SysBP, Pulse, Emergency)
-- Incorporates simulated clinician feedback to adapt alert importance over time
+- Consumes anomaly alerts from Kafka in near real-time
+- Score alerts based on vitals(SysBP, Pulse) and emergency
+- Incorporates simulated clinician feedback to adapt alert rankings over time
 - Near real-time performance(~1 second latency per record)
 
 ![Real-Time Kafka Alerts](./realtime_alert_system/kafka_alerts.png)
-<sub> The Kafka consumer console below shows the alert system actively processing patient vitals:
+<sub> The Kafka consumer console demonstrates real-time processing patient vitals:
 - Records are streamed one by one from the producer.
 - Anomalies are flagged based on:
    - Abnormal Pulse
    - Out-of-range SysBP
    - Emergency admissions
-- Alerts are assigned a severity score based on the number of triggered conditions.
-- The system then prioritizes alerts dynamically based on severity and feedback bias.
-- This validates that the pipeline is functioning as intended — even with mostly normal data, the mixed dataset (mixed_focus.csv) helps surface and test real-time alert logic effectively. </sub>
+- Alerts are assigned a severity score based on the number and type of triggered conditions.
+- The system then prioritizes alerts dynamically based on severity and feedback bias. </sub>
 
 
 
@@ -69,12 +68,42 @@ Originally created across two graduate-level courses at Harvard University, this
 ---
 
 ## Use Case
+This system simulates key components of a clinical decision support tool for ICU settings, enabling:
+- Early detection of life-threatening patient instability
+- Real-time alerting with severity scoring
+- Feedback-driven alert prioritization for ICU clinicians
+- A rapid prototyping framework for healthcare ML applications
 
-These models simulate components of clinical decision support tool, enabling: 
-- Early detection of life-threatening instability
-- Real-time alerting and triage
-- Feedback- informed alert ranking for ICU providers
-- Rapid prototyping of healthcare ML systems 
+---
+
+## Impact & Highlights
+
+**Clinical Relevance**: Emulates an early-warning system to detect high-risk patient deterioration using vital trends and emergency indicators, with the goal of expediting medical response.
+
+**Burnout Reduction**: The prioritization module helps reduce non-critical alerts and cognitive overload — a major issue in modern ICUs.
+
+**System Performance**:
+- **Patients Streamed**: ~750 records
+- **Abnormal Cases Detected**: 647 (via mixed_focus.csv)
+- **Anomaly Detection Latency**: ~1 second per record
+- **Alert Batching**: 5-records windows
+- **Severity Scoring**: Combines vital abnormalities and admission type 
+
+**Technical Breadth**:
+- **Data Ingestion**: Kafka-based streaming architecture
+- **Anomaly Detection**: Isolation Forest, One-Class SVM
+- **Rule-Based Scoring**: Severity calculated via abnormal Pulse, SysBP, or emergency case
+- **Adaptability**: Recommender system adjusts priorities using clinician feedback
+- **Explainability**: SHAP integration available for unsupervised models
+- **Streaming Performance**: Real-time architecture built with Python and Kafka
+
+
+**Next Steps**:
+- Integrate lab results and medications for multimodal anomaly detection
+- Deploy real-time alert visualization using Streamlit 
+- Add synthetic feedback loop from clinicians for live tuning
+- Scale to HL7/FHIR-compatible environments for EHR integration
+
 
 ---
 ## Installation 
