@@ -38,7 +38,17 @@ Originally created across two graduate-level courses at Harvard University, this
 - Near real-time performance(~1 second latency per record)
 
 ![Real-Time Kafka Alerts](./realtime_alert_system/kafka_alerts.png)
-<sub> Example: Kafka consumer detecting real-time ICU anomalies and prioritizing alerts.</sub>
+<sub> The Kafka consumer console below shows the alert system actively processing patient vitals:
+- Records are streamed one by one from the producer.
+- Anomalies are flagged based on:
+   - Abnormal Pulse
+   - Out-of-range SysBP
+   - Emergency admissions
+- Alerts are assigned a severity score based on the number of triggered conditions.
+- The system then prioritizes alerts dynamically based on severity and feedback bias.
+- This validates that the pipeline is functioning as intended — even with mostly normal data, the mixed dataset (mixed_focus.csv) helps surface and test real-time alert logic effectively. </sub>
+
+
 
 ---
 
