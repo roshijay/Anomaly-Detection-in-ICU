@@ -1,7 +1,13 @@
+
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from kafka import KafkaConsumer
 import json
-from realtime_alert_system.alert_prioritizer import prioritize_alerts
-from realtime_alert_system.recommender import load_feedback, compute_alert_bias, adjust_priority
+
+# Local imports (adjusted to relative paths for local run)
+from alert_prioritizer import prioritize_alerts
+from recommender import load_feedback, compute_alert_bias, adjust_priority
 
 def detect_anomalies(vitals):
     issues = []
@@ -18,7 +24,7 @@ def detect_anomalies(vitals):
         issues.append("Emergency Case")
 
     if issues:
-        score = len(issues) # Simple scoring: 1 point per issue 
+        score = len(issues)  # Simple scoring: 1 point per issue
 
         return {
             "patient_id": vitals["patient_id"],
@@ -41,25 +47,27 @@ def run_consumer(topic_name='icu_vitals'):
     bias_map = compute_alert_bias(feedback)
 
     alert_buffer = []
-    print(f"Listening to Kafka topic: {topic_name}")
+    print(f"📡 Listening to Kafka topic: {topic_name}")
 
     for message in consumer:
         vitals = message.value
+        print(f"Received: {vitals}")
         alert = detect_anomalies(vitals)
 
         if alert:
+            print(f"[ALERT] Patient {alert['patient_id']} | Score: {alert['severity_score']} | Issues: {alert['alert_type']}")
             alert_buffer.append(alert)
 
+        # Prioritize every 5 alerts
         if len(alert_buffer) >= 5:
             ranked = prioritize_alerts(alert_buffer)
             adjusted = [adjust_priority(a, bias_map) for a in ranked]
 
-            print("\nPrioritized Alerts:")
+            print("\n📊 Prioritized Alerts:")
             for a in adjusted:
                 print(f"Patient {a['patient_id']} | Score: {a['severity_score']} | Emergency: {a['Emergency']}")
 
-            alert_buffer = []
+            alert_buffer = []  # Reset for next batch
 
 if __name__ == "__main__":
     run_consumer()
-
