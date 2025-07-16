@@ -14,7 +14,7 @@ This dashboard simulates a real-time ICU monitoring system. Patient vitals are s
 """)
 
 # Load dataset
-DATA_PATH = "/Users/roshinijay/Anomaly-Detection-in-ICU/data/processed/mixed_focus.csv"
+DATA_PATH = "mixed_focus.csv"
 if not os.path.exists(DATA_PATH):
     st.error("mixed_focus.csv not found. Check the path.")
     st.stop()
