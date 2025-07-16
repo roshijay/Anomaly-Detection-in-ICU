@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import csv
+import pathlib
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
@@ -15,7 +16,7 @@ This dashboard simulates a real-time ICU monitoring system. Patient vitals are s
 """)
 
 # Load base dataset
-DATA_PATH = "mixed_focus.csv"
+DATA_PATH = pathlib.Path(__file__).parent / "mixed_focus.csv"
 if not os.path.exists(DATA_PATH):
     st.error("mixed_focus.csv not found. Check the path.")
     st.stop()
