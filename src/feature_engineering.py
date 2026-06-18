@@ -36,3 +36,36 @@ def add_rolling_features(df, vitals, window=6):
         )
     
     return df
+
+def add_lab_features(df, labs):
+    """
+    Add features for sparse lab values: forward-filled last known value
+    plus a binary flag indicating whether the lab was recently measured.
+    
+    Args:
+        df: DataFrame sorted by Patient_ID and Hour
+        labs: list of lab column names (e.g. Lactate, Creatinine, WBC)
+    
+    Returns:
+        DataFrame with new lab feature columns added
+    """
+    df = df.sort_values(['Patient_ID', 'Hour']).copy()
+    
+    for col in labs:
+        grouped = df.groupby('Patient_ID')[col]
+        
+        # Was this lab measured at this hour? (before any fill)
+        df[f'{col}_was_measured'] = grouped.transform(lambda x: x.notna().astype(int))
+        
+        # Carry forward the last known value per patient
+        df[f'{col}_last_known'] = grouped.transform(lambda x: x.ffill())
+        
+        # How many hours since this lab was last measured?
+        df[f'{col}_hours_since_measured'] = grouped.transform(
+            lambda x: x.notna().astype(int).cumsum()
+        )
+        df[f'{col}_hours_since_measured'] = df.groupby(
+            ['Patient_ID', f'{col}_hours_since_measured']
+        ).cumcount()
+    
+    return df
