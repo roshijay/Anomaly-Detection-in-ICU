@@ -79,6 +79,39 @@ def evaluate_xgboost(model, X_test, y_test):
     
     return auc
 
+def find_optimal_threshold(model, X_test, y_test, min_recall=0.85):
+    """
+    Find the threshold that maximizes precision while keeping recall
+    above a clinically-acceptable minimum. Prioritizes not missing sepsis
+    cases over minimizing false alarms, since missed sepsis is the costlier error.
+    """
+    y_pred_proba = model.predict_proba(X_test)[:, 1]
+    
+    precisions, recalls, thresholds = precision_recall_curve(y_test, y_pred_proba)
+    
+    # precision_recall_curve returns one more point than thresholds
+    # (it includes the threshold=0 edge case), so trim to match
+    precisions = precisions[:-1]
+    recalls = recalls[:-1]
+    
+    # Only consider thresholds where recall meets our clinical minimum
+    valid = recalls >= min_recall
+    
+    if not valid.any():
+        print(f"No threshold achieves recall >= {min_recall}. Using default 0.5.")
+        return 0.5
+    
+    # Among valid thresholds, pick the one with highest precision
+    valid_precisions = np.where(valid, precisions, -1)
+    best_idx = np.argmax(valid_precisions)
+    best_threshold = thresholds[best_idx]
+    
+    print(f"Best threshold (recall >= {min_recall}): {best_threshold:.4f}")
+    print(f"At this threshold - Precision: {precisions[best_idx]:.4f}, Recall: {recalls[best_idx]:.4f}")
+    
+    return best_threshold
+
+
 
 def evaluate_isolation_forest(model, X_test, y_test):
     """
@@ -131,6 +164,9 @@ if __name__ == "__main__":
     print("\n--- Training XGBoost ---")
     xgb_model = train_xgboost(X_train, y_train)
     xgb_auc = evaluate_xgboost(xgb_model, X_test, y_test)
+
+    print("\n--- Threshold Tuning ---")
+    best_threshold = find_optimal_threshold(xgb_model, X_test, y_test)
     
     print("\n--- Summary ---")
     print(f"Isolation Forest AUC: {iso_auc:.4f}")
