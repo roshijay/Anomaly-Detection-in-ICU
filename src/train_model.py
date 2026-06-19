@@ -16,7 +16,7 @@ def prepare_data(df):
     raw_labs = ['Lactate', 'Creatinine', 'WBC', 'BUN', 
                 'Platelets', 'Bilirubin_total', 'Glucose']
     
-    non_feature_cols = ['Patient_ID', 'SepsisLabel', 'Unit1', 'Unit2']
+    non_feature_cols = ['Patient_ID', 'SepsisLabel', 'Unit1', 'Unit2', 'ICULOS', 'HospAdmTime', 'Hour']
     
     drop_cols = raw_labs + non_feature_cols
     
