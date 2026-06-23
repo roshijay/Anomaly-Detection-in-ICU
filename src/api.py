@@ -1,6 +1,7 @@
 import joblib
 import pandas as pd
 import numpy as np
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -32,7 +33,8 @@ class PatientVitals(BaseModel):
     Glucose: Optional[float] = Field(None, description="Glucose (mg/dL)")
 
 # Load the trained model once, at startup - not on every request
-xgb_model = joblib.load('../models/xgb_model.joblib')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+xgb_model = joblib.load(os.path.join(BASE_DIR, 'models', 'xgb_model.joblib'))
 
 # The exact feature columns the model was trained on, in order
 MODEL_FEATURES = xgb_model.get_booster().feature_names
@@ -58,7 +60,7 @@ def build_feature_row(vitals: PatientVitals) -> pd.DataFrame:
     This is a documented simplification: real deployment would maintain
     a rolling buffer of recent readings per patient.
     """
-    vitals_dict = vitals.dict()
+    vitals_dict = vitals.model_dump()
     row = {}
 
     for feature in MODEL_FEATURES:
@@ -95,6 +97,9 @@ def build_feature_row(vitals: PatientVitals) -> pd.DataFrame:
     df_row = pd.DataFrame([row])
     # Ensure exact column order matches training
     df_row = df_row[MODEL_FEATURES]
+    # Force all columns to float64 - XGBoost rejects object dtype
+    # which occurs when None values are present in the row
+    df_row = df_row.astype(float)
     return df_row
 
 @app.post("/predict")
