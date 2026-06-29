@@ -1,189 +1,165 @@
-# Anomaly Detection in ICU Patient Monitoring
+# ICU Sepsis Early Warning System
 
-> A three part data science project demonstraing interpretable and real-time anomaly detection in ICU patient vitals, enhanced by adaptive alert prioritization. 
----
+> A production-grade clinical decision support system for early sepsis detection, built on 1.55 million ICU patient-hours from the PhysioNet 2019 Challenge dataset.
 
-## Overview
-
-This repository contains three moddular systems for detecting anomalies in ICU vital signs:
-
-- A classic time-series model (ARIMA/ETS)
-
-- A real-time streaming anomaly detector with Kafka + unsupervised ML
-
-- A dynamic alert prioritization engine that adapts based on clinician feedback (simulated)
-
-Originally developed across two graduate-level Harvard courses, the project progresses from interpretable statistical models to fully-streamed real-time pipelines with feedback-driven alert management.
+[![CI](https://github.com/roshijay/Anomaly-Detection-in-ICU/actions/workflows/ci.yml/badge.svg)](https://github.com/roshijay/Anomaly-Detection-in-ICU/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11-blue)
+![XGBoost AUC](https://img.shields.io/badge/XGBoost%20AUC-0.81-green)
 
 ---
 
-##  Project Modules
+## Project Story
 
-### 1. [`legacy_stats_model/`](./legacy_stats_model/)
-- Applies ARIMA & Exponential Smoothing for anomaly detection in SysBP & Pulse
-- Defines confidence-based thresholds to flag anomalies 
-- Emphasizes interpretability to support clinicians
+This repository documents a three-phase progression from exploratory research to a production-ready ML system:
+
+| Phase | Notebook | Description |
+|-------|----------|-------------|
+| Phase 1 (Dec 2024) | `notebooks/exploratory_analysis.ipynb` | Statistical EDA on ICU cohort — IQR analysis, chi-square, ANOVA, ARIMA time-series modeling |
+| Phase 2 (May 2025) | `notebooks/waveform_prototype.ipynb` | MIMIC-III waveform anomaly detection — Kafka streaming, Isolation Forest, One-Class SVM, SHAP, Streamlit dashboard |
+| Phase 3 (Present) | Production system (this repo) | PhysioNet 2019, 1.55M patient-hours, XGBoost + FastAPI + Docker + CI/CD |
+
 ---
 
-### 2. [`kafka_streaming_model/`](./kafka_streaming_model/)
+## What This System Does
 
-- Streams patient vital signs using a Kafka producer-consumer pipeline 
-- Detects anomalies using Isolation Forest and One-Class SVM
-- Includes SHAP for explainability and clustering for patient similarity insights
+The system accepts real-time ICU patient vitals and lab values via a REST API and returns a calibrated sepsis risk score with a clinical flag. It is designed as a **decision support tool** — surfacing high-risk patients for clinician review, not replacing clinical judgment.
 
-### 3. [`realtime_alert_system/`](./realtime_alert_system/)
-- Consumes anomaly alerts from Kafka in near real-time
-- Score alerts based on vitals(SysBP, Pulse) and emergency
-- Incorporates simulated clinician feedback to adapt alert rankings over time
-- Near real-time performance(~1 second latency per record)
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"HR": 110, "Temp": 38.9, "SBP": 88, "Lactate": 4.2, "WBC": 18.5}'
 
-![Real-Time Kafka Alerts](./realtime_alert_system/kafka_alerts.png)
-<sub> The Kafka consumer console demonstrates real-time processing patient vitals:
-- Records are streamed one by one from the producer.
-- Anomalies are flagged based on:
-   - Abnormal Pulse
-   - Out-of-range SysBP
-   - Emergency admissions
-- Alerts are assigned a severity score based on the number and type of triggered conditions.
-- The system then prioritizes alerts dynamically based on severity and feedback bias. </sub>
-
-
+# Response:
+# {"sepsis_risk_score": 0.1869, "flagged": false, "threshold_used": 0.2635}
+```
 
 ---
 
 ## Dataset
 
-- **Source**: [Kaggle - Predict Mortality of ICU Patients](https://www.kaggle.com/datasets/msafi04/predict-mortality-of-icu-patients-physionet)
-- **Size**: 12,000 ICU time series segments from 4,000 unique patients
-- **Format**: 48-hour windows of vital signs, lab results, and static features per patient stay
-- **Key Features**:
-  - `SysBP`: Systolic Blood Pressure
-  - `Pulse`: Heart rate
-  - `Survive`: Survival outcome
-  - `Infection`: Infection presence (e.g., MRSA/sepsis)
-  - `Emergency`: Binary indicator for emergency admission
-
-**Note**: Data was preprocessed to filter valid vitals (SysBP, Pulse), select relevant features, and standardize time windows to simulate real-time streaming.
+- **Source:** PhysioNet Computing in Cardiology Challenge 2019
+- **Size:** 1,552,210 patient-hours across 40,336 ICU patients
+- **Label:** SepsisLabel — defined using Sepsis-3 criteria (SOFA score increase ≥ 2)
+- **Sepsis rate:** 7.27% of patients, 1.8% of patient-hours
+- **Variables:** 40 clinical features — 7 vitals, 26 labs, 7 demographics/administrative
 
 ---
 
-## Use Case
-This system simulates key components of a clinical decision support tool for ICU settings, enabling:
-- Early detection of life-threatening patient instability
-- Real-time alerting with severity scoring
-- Feedback-driven alert prioritization for ICU clinicians
-- A rapid prototyping framework for healthcare ML applications
+## Model Performance
+
+| Model | AUC-ROC | Notes |
+|-------|---------|-------|
+| XGBoost | 0.8133 | Patient-level split, no time artifacts |
+| Isolation Forest | 0.6290 | Unsupervised baseline |
+
+**Split strategy:** Patient-level train/test split — entire patients assigned to either train or test, preventing data leakage from the same patient appearing in both sets.
+
+**Threshold:** 0.2635 — selected to achieve recall ≥ 0.85, prioritizing sensitivity over specificity given the asymmetric cost of missed sepsis cases.
+
+**SHAP top features:** `Lactate_hours_since_measured`, `Bilirubin_total_last_known`, `WBC_last_known`, `Creatinine_last_known` — all aligned with Sepsis-3 SOFA score components, validating that the model learns genuine physiological signal.
 
 ---
 
-## Impact & Highlights
+## Feature Engineering
 
-**Clinical Relevance**: Emulates an early-warning system to detect high-risk patient deterioration using vital trends and emergency indicators, with the goal of expediting medical response.
+**Vitals (7 features × 5 statistics = 35 features):**
+6-hour rolling mean, std, min, max, and trend for HR, O2Sat, Temp, SBP, MAP, DBP, Resp.
 
-**Burnout Reduction**: The prioritization module helps reduce non-critical alerts and cognitive overload — a major issue in modern ICUs.
+**Labs (7 labs × 3 features = 21 features):**
+Forward-filled last known value, binary "was measured" flag, and hours since last measurement — MNAR-aware design that treats lab ordering as a clinical signal.
 
-**System Performance**:
-- **Patients Streamed**: ~750 records
-- **Abnormal Cases Detected**: 647 (via mixed_focus.csv)
-- **Anomaly Detection Latency**: ~1 second per record
-- **Alert Batching**: 5-records windows
-- **Severity Scoring**: Combines vital abnormalities and admission type 
-
-**Technical Breadth**:
-- **Data Ingestion**: Kafka-based streaming architecture
-- **Anomaly Detection**: Isolation Forest, One-Class SVM
-- **Rule-Based Scoring**: Severity calculated via abnormal Pulse, SysBP, or emergency case
-- **Adaptability**: Recommender system adjusts priorities using clinician feedback
-- **Explainability**: SHAP integration available for unsupervised models
-- **Streaming Performance**: Real-time architecture built with Python and Kafka
-
-
-**Next Steps**:
-- Integrate lab results and medications for multimodal anomaly detection
-- Deploy real-time alert visualization using Streamlit 
-- Add synthetic feedback loop from clinicians for live tuning
-- Scale to HL7/FHIR-compatible environments for EHR integration
-
+**Total: 85 engineered features**
 
 ---
-## Installation 
-Clone the repo and install dependencies 
+
+## Production Stack
+
+| Component | Technology | Details |
+|-----------|-----------|---------|
+| Model training | XGBoost + Scikit-learn | Patient-level split, class weighting |
+| Experiment tracking | MLflow | Parameters, metrics, model registry |
+| REST API | FastAPI + Pydantic | Auto-validated endpoints, /docs UI |
+| Testing | Pytest + httpx | 4 tests covering structure, validation, behavior |
+| CI/CD | GitHub Actions | Auto-runs on every push to main |
+| Containerization | Docker | One-command deployment |
+| Explainability | SHAP TreeExplainer | Per-prediction feature attribution |
+
+---
+
+## Quick Start
+
+### Run with Docker (recommended)
 ```bash
 git clone https://github.com/roshijay/Anomaly-Detection-in-ICU.git
 cd Anomaly-Detection-in-ICU
+docker build -t icudetect .
+docker run -p 8000:8000 icudetect
+```
+
+### Run locally
+```bash
+git clone https://github.com/roshijay/Anomaly-Detection-in-ICU.git
+cd Anomaly-Detection-in-ICU
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
+cd src && uvicorn api:app --reload
 ```
----
-# How to Run 
-- 1. Run the legacy Staistical Model( ARIMA/ETS)
-     ```bash
-     cd legacy_stats_model
-     jupyter notebook legacy_model.ipynb  # or run legacy_model.py
-     ```
 
-- 2. Run the Real-time streaming + Alert Priorization Pipeline 
-     Terminal 1: Kafka producer(Patient records)
-     ```bash 
-     cd realtime_alert_system/kafka_bridge 
-     python producer.py
-     ```
+### API Documentation
+Visit `http://localhost:8000/docs` for interactive API documentation.
 
-     Terminal 2: Kafka consumer(Anomaly Detection + Alert Ranking) 
-     ```bash 
-     cd realtime_alert_system/kafka_bridge 
-     python consumer.py
-     ```
-
----
-# Requirements 
-- This project is split into two main components, each with its own set of core dependencies:
-
-  1. Legacy Statistical Model (ARIMA/ETS)
-     *Interpretable time-series forecasting using classic statistical methods.*
-     Libraries:
-     - pandas, numpy: Data manipulation
-     - matplotlib, seaborn: Visualization
-     - statsmodel-ARIMA, Exponential Smoothing modeling
-     - jupyter: Running notebooks interactively
-       
-  2. Real-Time Kafka Model + Recommender
-     *Anomaly detection + alert prioritization pipeline with streaming support.*
-     Libraries:
-     - pandas, numpy, scikit-learn – Data handling & ML
-     - kafka-python – Kafka producer/consumer
-     - shap – Model explainability
-     - time, json, os – Python standard libs for IO and formatting
-
----
-# Project Structure 
+### Run tests
+```bash
+python -m pytest tests/test_api.py -v
 ```
-Anomaly-Detection-in-ICU/
-│
-├── legacy_stats_model/                  # ARIMA/ETS time-series model
-│   ├── legacy_model.ipynb
-│   └── README.md
-│
-├── kafka_streaming_model/               # Kafka stream + unsupervised ML
-│   ├── producer/
-│   ├── consumer/
-│   └── README.md
-│
-├── realtime_alert_system/               # Real-time alert pipeline (modular)
-│   ├── kafka_bridge/                    # Kafka producer and consumer scripts
-│   ├── streamlit_ui/                    # (Optional) Streamlit feedback interface
-│   ├── alert_prioritizer.py             # Rule-based alert scoring and ranking
-│   ├── recommender.py                   # Feedback-aware bias adjustment
-│   ├── feedback_loop.py                 # Placeholder for clinician feedback tracking
-│   ├── integrator.py                    # (Planned) Orchestrates alert + feedback
-│   └── __pycache__/                     # Compiled bytecode (auto-generated)
-│
-├── data/                                # Processed dataset (Kaggle ICU subset)
-│   └── processed_kaggle_icu.csv
-│
-├── requirements.txt                     # Dependencies for all components
-└── README.md    
-```
+
 ---
 
+## Project Structure
+icudetect/
 
-  
+├── src/
+
+│   ├── api.py                    # FastAPI endpoints
+
+│   ├── train_model.py            # Model training with MLflow tracking
+
+│   └── feature_engineering.py   # Rolling window + lab recency features
+
+├── notebooks/
+
+│   └── exploratory_analysis.ipynb  # EDA: missingness, distributions, SHAP
+
+├── tests/
+
+│   ├── test_api.py               # Pytest suite (4 tests)
+
+│   ├── test_clinical_behavior.py # Clinical behavioral tests (local only)
+
+│   └── fixtures/                 # Synthetic data + model for CI
+
+├── models/                       # Saved model artifacts (gitignored)
+
+├── data/                         # Dataset files (gitignored)
+
+├── .github/workflows/ci.yml      # GitHub Actions CI pipeline
+
+├── Dockerfile                    # Container definition
+
+├── MODEL_CARD.md                 # Intended use, metrics, limitations, ethics
+
+└── requirements.txt              # Locked dependencies
+
+---
+
+## Ethical Considerations
+
+This system is a **clinical decision support tool**, not a diagnostic system. All predictions must be reviewed by a qualified clinician before any clinical action is taken. See [MODEL_CARD.md](./MODEL_CARD.md) for full details on intended use, limitations, fairness considerations, and known gaps.
+
+---
+
+## Author
+
+**Roshini Jayasankar**
+Harvard Data Science | June 2026
+[GitHub](https://github.com/roshijay)
